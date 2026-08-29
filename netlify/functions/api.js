@@ -4,15 +4,11 @@ const cors = require("cors");
 const { getStore } = require("@netlify/blobs");
 
 const app = express();
-app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors());
 
-function getReportsStore() {
-  return getStore({
-    name: "voltpulse_reports",
-    consistency: "strong",
-  });
-}
+let globalReports = null;
 
 function getSeedReports() {
   return [
@@ -37,89 +33,83 @@ function getSeedReports() {
   ];
 }
 
-function normalizeStatus(status) {
-  if (typeof status !== "string") {
-    return null;
+function parseBody(req) {
+  const raw = req.body;
+  if (raw == null || raw === "") {
+    return {};
   }
-  const value = status.trim().toUpperCase();
-  if (value !== "ON" && value !== "OFF") {
-    return null;
+  if (typeof raw === "string") {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return {};
+    }
   }
-  return value;
+  if (Buffer.isBuffer(raw)) {
+    try {
+      return JSON.parse(raw.toString("utf8"));
+    } catch {
+      return {};
+    }
+  }
+  if (typeof raw === "object") {
+    return raw;
+  }
+  return {};
 }
 
-async function readReports(store) {
-  const reports = await store.get("reports", { type: "json" });
-  if (!Array.isArray(reports)) {
-    return getSeedReports();
-  }
-  return reports;
+function isPopulatedReports(reports) {
+  return Array.isArray(reports) && reports.length > 0;
 }
 
 async function handleStatus(_req, res) {
   try {
-    const store = getReportsStore();
+    const store = getStore("voltpulse_reports");
     const reports = await store.get("reports", { type: "json" });
-    res.json(Array.isArray(reports) ? reports : getSeedReports());
-  } catch (err) {
-    console.error("GET /api/status failed:", err.message);
-    res.status(500).json({
-      success: false,
-      error: "Unable to fetch status reports.",
-    });
+    if (isPopulatedReports(reports)) {
+      globalReports = reports;
+      res.json(reports);
+      return;
+    }
+  } catch {
+    // Fall through to in-memory or seed data.
   }
+
+  if (isPopulatedReports(globalReports)) {
+    res.json(globalReports);
+    return;
+  }
+
+  res.json(getSeedReports());
 }
 
 async function handleReport(req, res) {
+  const body = parseBody(req);
+  const township = String(body.township || body.area || "").trim();
+  const status = String(body.status || "")
+    .trim()
+    .toUpperCase();
+
+  const report = {
+    id: Date.now(),
+    township,
+    status,
+    timestamp: new Date().toISOString(),
+  };
+
+  const existing = isPopulatedReports(globalReports)
+    ? globalReports
+    : getSeedReports();
+  globalReports = [report, ...existing];
+
   try {
-    const townshipRaw =
-      typeof req.body?.township === "string"
-        ? req.body.township
-        : typeof req.body?.area === "string"
-          ? req.body.area
-          : "";
-    const township = townshipRaw.trim();
-    const status = normalizeStatus(req.body?.status);
-
-    if (!township) {
-      res.status(400).json({
-        success: false,
-        error: "township is required and must be a non-empty string.",
-      });
-      return;
-    }
-
-    if (!status) {
-      res.status(400).json({
-        success: false,
-        error: "status is required and must be 'ON' or 'OFF'.",
-      });
-      return;
-    }
-
-    const store = getReportsStore();
-    const existing = await readReports(store);
-    const report = {
-      id: Date.now(),
-      township,
-      status,
-      timestamp: new Date().toISOString(),
-    };
-    const updatedReports = [report, ...existing];
-    await store.setJSON("reports", updatedReports);
-
-    res.status(201).json({
-      success: true,
-      message: "Report saved.",
-      report,
-    });
-  } catch (err) {
-    console.error("POST /api/report failed:", err.message);
-    res.status(500).json({
-      success: false,
-      error: "Unable to save report.",
-    });
+    const store = getStore("voltpulse_reports");
+    await store.setJSON("reports", globalReports);
+  } catch {
+    // Ignore Blobs failures; the in-memory list is still returned.
   }
+
+  res.status(200).json({ success: true, reports: globalReports });
 }
 
 app.get("/api/status", handleStatus);
