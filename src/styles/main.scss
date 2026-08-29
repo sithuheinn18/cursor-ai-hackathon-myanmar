@@ -242,6 +242,26 @@ input {
     font-size: 0.78rem;
   }
 
+  &__eta {
+    display: inline-block;
+    margin-top: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 650;
+    line-height: 1.35;
+    padding: 0.18rem 0.45rem;
+    border-radius: 999px;
+  }
+
+  &__eta--on {
+    color: #bbf7d0;
+    background: rgba($green, 0.16);
+  }
+
+  &__eta--off {
+    color: #fecdd3;
+    background: rgba($coral, 0.16);
+  }
+
   &__status {
     font-size: 0.75rem;
     font-weight: 750;

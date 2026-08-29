@@ -1,5 +1,6 @@
 const BATTERY_VOLTS = 12;
 const BATTERY_EFFICIENCY = 0.8;
+const OUTAGE_DURATION_MS = 4 * 60 * 60 * 1000;
 
 const connectionBadge = document.getElementById("connection-badge");
 const connectionLabel = document.getElementById("connection-label");
@@ -42,6 +43,38 @@ function normalizeReports(payload) {
 
 function isPowerOn(status) {
   return String(status).toUpperCase() === "ON";
+}
+
+function formatRemaining(ms) {
+  if (ms <= 0) {
+    return "0 min";
+  }
+
+  const totalMins = Math.floor(ms / 60000);
+  const hours = Math.floor(totalMins / 60);
+  const mins = totalMins % 60;
+
+  if (hours > 0 && mins > 0) {
+    return `${hours}h ${mins}m`;
+  }
+  if (hours > 0) {
+    return `${hours}h`;
+  }
+  return `${mins} min`;
+}
+
+function getEstimatedReturnLabel(report) {
+  if (isPowerOn(report.status)) {
+    return "⚡ Grid Active";
+  }
+
+  const reportTime = new Date(report.timestamp);
+  const returnTime = Number.isNaN(reportTime.getTime())
+    ? new Date(Date.now() + OUTAGE_DURATION_MS)
+    : new Date(reportTime.getTime() + OUTAGE_DURATION_MS);
+  const remaining = returnTime.getTime() - Date.now();
+
+  return `⏱️ Estimated Return: ${formatTime(returnTime)} (Remaining: ${formatRemaining(remaining)})`;
 }
 
 function showToast(message, variant = "success") {
@@ -89,7 +122,11 @@ function renderFeed(reports) {
     time.className = "feed-item__time";
     time.textContent = formatTime(report.timestamp);
 
-    meta.append(area, time);
+    const eta = document.createElement("span");
+    eta.className = `feed-item__eta ${on ? "feed-item__eta--on" : "feed-item__eta--off"}`;
+    eta.textContent = getEstimatedReturnLabel(report);
+
+    meta.append(area, time, eta);
 
     const status = document.createElement("span");
     status.className = "feed-item__status";
