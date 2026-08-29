@@ -198,6 +198,68 @@ function updateBatteryRuntime() {
   hoursLeft.textContent = `${hours.toFixed(1)} Hours`;
 }
 
+function injectPresetSelect(input, { id, label, options }) {
+  if (!input || document.getElementById(id)) {
+    return;
+  }
+
+  const select = document.createElement("select");
+  select.id = id;
+  select.setAttribute("aria-label", label);
+
+  for (const option of options) {
+    const item = document.createElement("option");
+    item.value = option.value;
+    item.textContent = option.label;
+    select.append(item);
+  }
+
+  select.addEventListener("change", () => {
+    if (select.value === "") {
+      return;
+    }
+    input.value = select.value;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    updateBatteryRuntime();
+  });
+
+  input.addEventListener("input", () => {
+    const match = [...select.options].some(
+      (option) => option.value !== "" && option.value === String(input.value)
+    );
+    if (!match) {
+      select.value = "";
+    }
+  });
+
+  input.before(select);
+}
+
+function injectCalculatorPresets() {
+  injectPresetSelect(batteryAh, {
+    id: "battery-ah-preset",
+    label: "Battery capacity preset",
+    options: [
+      { value: "", label: "Custom / Manual Input" },
+      { value: "20", label: "Small Power Bank / UPS (20 Ah)" },
+      { value: "100", label: "Standard Inverter Battery (100 Ah)" },
+      { value: "200", label: "Large Solar Battery (200 Ah)" },
+    ],
+  });
+
+  injectPresetSelect(powerWatts, {
+    id: "power-watts-preset",
+    label: "Load preset",
+    options: [
+      { value: "", label: "Custom / Manual Input" },
+      { value: "15", label: "Wi-Fi Router + Phone (15W)" },
+      { value: "65", label: "Laptop + LED Lights (65W)" },
+      { value: "200", label: "Desktop PC + Monitor (200W)" },
+      { value: "120", label: "TV + Fan (120W)" },
+    ],
+  });
+}
+
 function registerServiceWorker() {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker
@@ -300,6 +362,7 @@ btnOff.addEventListener("click", () => submitReport("OFF"));
 batteryAh.addEventListener("input", updateBatteryRuntime);
 powerWatts.addEventListener("input", updateBatteryRuntime);
 
+injectCalculatorPresets();
 updateBatteryRuntime();
 fetchStatusFeed();
 injectOutageChartCard();
