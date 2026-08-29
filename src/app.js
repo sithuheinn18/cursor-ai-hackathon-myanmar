@@ -208,6 +208,84 @@ function registerServiceWorker() {
   }
 }
 
+const CHART_JS_SRC = "https://cdn.jsdelivr.net/npm/chart.js";
+let outageChart = null;
+
+function injectOutageChartCard() {
+  const liveFeed = document.getElementById("live-feed");
+  if (!liveFeed || document.getElementById("outageChart")) {
+    return;
+  }
+
+  liveFeed.insertAdjacentHTML(
+    "afterend",
+    `<section class="card" style="margin-top: 1.5rem;">
+      <h3 style="font-size: 1.1rem; margin-bottom: 0.75rem; color: #f7fafc;">📈 24-Hour Township Outage Trends</h3>
+      <div style="position: relative; width: 100%; height: 220px;">
+        <canvas id="outageChart"></canvas>
+      </div>
+    </section>`
+  );
+}
+
+function initOutageChart() {
+  const canvas = document.getElementById("outageChart");
+  if (!canvas || typeof window.Chart !== "function" || outageChart) {
+    return;
+  }
+
+  outageChart = new window.Chart(canvas, {
+    type: "line",
+    data: {
+      labels: ["06:00", "09:00", "12:00", "15:00", "18:00", "21:00", "Now"],
+      datasets: [
+        {
+          label: "Active Township Outages",
+          data: [1, 3, 2, 5, 4, 3, 2],
+          borderColor: "#ff4d4d",
+          backgroundColor: "rgba(255, 77, 77, 0.15)",
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: "#ff4d4d",
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          type: "category",
+          ticks: { color: "#a0aec0" },
+          grid: { color: "rgba(255, 255, 255, 0.08)" },
+        },
+        y: {
+          ticks: { color: "#a0aec0" },
+          grid: { color: "rgba(255, 255, 255, 0.08)" },
+        },
+      },
+    },
+  });
+}
+
+function loadChartJs(onReady) {
+  const existing = document.querySelector(`script[src="${CHART_JS_SRC}"]`);
+  if (window.Chart) {
+    onReady();
+    return;
+  }
+
+  if (existing) {
+    existing.addEventListener("load", onReady, { once: true });
+    return;
+  }
+
+  const script = document.createElement("script");
+  script.src = CHART_JS_SRC;
+  script.onload = onReady;
+  document.head.append(script);
+}
+
 setConnectionState(navigator.onLine);
 window.addEventListener("online", () => setConnectionState(true));
 window.addEventListener("offline", () => setConnectionState(false));
@@ -220,3 +298,5 @@ powerWatts.addEventListener("input", updateBatteryRuntime);
 
 updateBatteryRuntime();
 fetchStatusFeed();
+injectOutageChartCard();
+loadChartJs(initOutageChart);
