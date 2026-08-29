@@ -9,13 +9,15 @@
     "backend": "node server.js",
     "frontend": "parcel index.html",
     "dev": "parcel index.html",
-    "build": "parcel build index.html --dist-dir dist && node -e \"require('fs').copyFileSync('sw.js', 'dist/sw.js')\"",
+    "build": "parcel build index.html --public-url ./",
     "seed": "node seed.js"
   },
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "dependencies": {
+    "@netlify/blobs": "^11.0.2",
     "cors": "^2.8.5",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "serverless-http": "^4.0.0"
   },
   "optionalDependencies": {
     "sqlite3": "^5.1.7"

@@ -1,3 +1,5 @@
+const API_BASE = "";
+
 const BATTERY_VOLTS = 12;
 const BATTERY_EFFICIENCY = 0.8;
 const OUTAGE_DURATION_MS = 4 * 60 * 60 * 1000;
@@ -116,7 +118,7 @@ function renderFeed(reports) {
 
     const area = document.createElement("span");
     area.className = "feed-item__township";
-    area.textContent = report.area || "Unknown area";
+    area.textContent = report.township || report.area || "Unknown area";
 
     const time = document.createElement("span");
     time.className = "feed-item__time";
@@ -139,7 +141,7 @@ function renderFeed(reports) {
 
 async function fetchStatusFeed() {
   try {
-    const response = await fetch("/api/status");
+    const response = await fetch(`${API_BASE}/api/status`);
     if (!response.ok) {
       throw new Error("Status feed request failed.");
     }
@@ -159,10 +161,10 @@ async function submitReport(status) {
   });
 
   try {
-    const response = await fetch("/api/report", {
+    const response = await fetch(`${API_BASE}/api/report`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ area, status }),
+      body: JSON.stringify({ township: area, area, status }),
     });
 
     const payload = await response.json().catch(() => ({}));
