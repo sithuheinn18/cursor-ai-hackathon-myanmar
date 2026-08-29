@@ -208,7 +208,7 @@ function registerServiceWorker() {
   }
 }
 
-const CHART_JS_SRC = "https://cdn.jsdelivr.net/npm/chart.js";
+const CHART_JS_SRC = "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js";
 let outageChart = null;
 
 function injectOutageChartCard() {
@@ -282,7 +282,11 @@ function loadChartJs(onReady) {
 
   const script = document.createElement("script");
   script.src = CHART_JS_SRC;
+  script.crossOrigin = "anonymous";
   script.onload = onReady;
+  script.onerror = () => {
+    console.error("Failed to load Chart.js from CDN.");
+  };
   document.head.append(script);
 }
 
