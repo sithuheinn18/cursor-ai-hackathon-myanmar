@@ -196,9 +196,20 @@ function updateBatteryRuntime() {
   hoursLeft.textContent = `${hours.toFixed(1)} Hours`;
 }
 
+function registerServiceWorker() {
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker
+      .register(new URL("../sw.js", import.meta.url))
+      .catch((err) => {
+        console.error("Service worker registration failed.", err);
+      });
+  }
+}
+
 setConnectionState(navigator.onLine);
 window.addEventListener("online", () => setConnectionState(true));
 window.addEventListener("offline", () => setConnectionState(false));
+registerServiceWorker();
 
 btnOn.addEventListener("click", () => submitReport("ON"));
 btnOff.addEventListener("click", () => submitReport("OFF"));
