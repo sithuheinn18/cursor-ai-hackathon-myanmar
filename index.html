@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta
+      name="description"
+      content="VoltPulse — report and track neighborhood power outages in real time."
+    />
+    <title>VoltPulse</title>
+    <link rel="stylesheet" href="src/styles/main.scss" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="site-header">
+        <div class="site-header__brand">
+          <span class="site-header__mark" aria-hidden="true">⚡</span>
+          <h1 class="site-header__title">VoltPulse</h1>
+        </div>
+        <div
+          class="connection-badge"
+          id="connection-badge"
+          role="status"
+          aria-live="polite"
+          data-state="online"
+        >
+          <span class="connection-badge__dot" aria-hidden="true"></span>
+          <span class="connection-badge__label" id="connection-label">Online</span>
+        </div>
+      </header>
+
+      <main class="app__main">
+        <section class="card" id="quick-report" aria-labelledby="quick-report-heading">
+          <h2 class="card__title" id="quick-report-heading">Quick Report</h2>
+          <p class="card__lede">Tell the neighborhood if the grid is up or down.</p>
+
+          <label class="field" for="township">
+            <span class="field__label">Township</span>
+            <select id="township" name="township" autocomplete="address-level2">
+              <option value="Downtown">Downtown</option>
+              <option value="Kamayut">Kamayut</option>
+              <option value="Bahan">Bahan</option>
+              <option value="Hlaing">Hlaing</option>
+            </select>
+          </label>
+
+          <div class="action-row">
+            <button type="button" class="btn btn--on" id="btn-power-on">
+              ⚡ Power ON
+            </button>
+            <button type="button" class="btn btn--off" id="btn-power-off">
+              ❌ Power OFF
+            </button>
+          </div>
+        </section>
+
+        <section class="card" id="live-feed" aria-labelledby="live-feed-heading">
+          <h2 class="card__title" id="live-feed-heading">Live Status Feed</h2>
+          <p class="card__lede">Aggregated reports from nearby townships.</p>
+          <ul class="feed" id="status-feed" aria-live="polite"></ul>
+        </section>
+
+        <section class="card" id="battery-calc" aria-labelledby="battery-calc-heading">
+          <h2 class="card__title" id="battery-calc-heading">Backup Battery Runtime</h2>
+          <p class="card__lede">Estimate how long a 12V battery can carry your load.</p>
+
+          <div class="calc-grid">
+            <label class="field" for="battery-ah">
+              <span class="field__label">Battery Capacity (Ah)</span>
+              <input
+                id="battery-ah"
+                name="battery-ah"
+                type="number"
+                min="1"
+                step="1"
+                inputmode="decimal"
+                placeholder="e.g. 100"
+              />
+            </label>
+            <label class="field" for="power-watts">
+              <span class="field__label">Power Load (Watts)</span>
+              <input
+                id="power-watts"
+                name="power-watts"
+                type="number"
+                min="1"
+                step="1"
+                inputmode="decimal"
+                placeholder="e.g. 80"
+              />
+            </label>
+          </div>
+
+          <div class="hours-display" aria-live="polite">
+            <span class="hours-display__caption">Estimated Hours Left</span>
+            <p class="hours-display__value" id="hours-left">0.0 Hours</p>
+          </div>
+        </section>
+      </main>
+    </div>
+    <div class="toast-region" id="toast-region" aria-live="polite" aria-relevant="additions"></div>
+    <script type="module" src="src/app.js"></script>
+  </body>
+</html>

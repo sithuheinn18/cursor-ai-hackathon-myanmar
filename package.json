@@ -1,0 +1,28 @@
+{
+  "name": "voltpulse",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Community power-status reports for Yangon townships",
+  "source": "index.html",
+  "scripts": {
+    "start": "node server.js",
+    "backend": "node server.js",
+    "frontend": "parcel index.html",
+    "dev": "parcel index.html",
+    "build": "parcel build index.html --dist-dir dist"
+  },
+  "browserslist": "> 0.5%, last 2 versions, not dead",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  },
+  "optionalDependencies": {
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "@parcel/source-map": "^2.1.1",
+    "@parcel/transformer-sass": "^2.16.4",
+    "parcel": "^2.16.4",
+    "sass": "^1.85.1"
+  }
+}
