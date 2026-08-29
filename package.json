@@ -9,7 +9,8 @@
     "backend": "node server.js",
     "frontend": "parcel index.html",
     "dev": "parcel index.html",
-    "build": "parcel build index.html --dist-dir dist && node -e \"require('fs').copyFileSync('sw.js', 'dist/sw.js')\""
+    "build": "parcel build index.html --dist-dir dist && node -e \"require('fs').copyFileSync('sw.js', 'dist/sw.js')\"",
+    "seed": "node seed.js"
   },
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "dependencies": {
